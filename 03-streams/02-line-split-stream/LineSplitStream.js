@@ -17,7 +17,6 @@ class LineSplitStream extends stream.Transform {
   }
 
   _flush(callback) {
-    console.log('flush');
     if (this.trail.length > 0) {
       this.push(this.trail);
       this.trail = "";
