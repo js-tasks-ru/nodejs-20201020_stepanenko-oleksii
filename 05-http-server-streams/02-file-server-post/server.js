@@ -34,7 +34,6 @@ server.on('request', (req, res) => {
 
   switch (req.method) {
     case 'POST':
-
       if (pathname.split('/').length > 1) {
         res.statusCode = 400;
         res.end();
@@ -49,7 +48,7 @@ server.on('request', (req, res) => {
 
       req.on('error', errorHandler)
           .on('close', ()=> {if (req.aborted) { fs.unlinkSync(filepath)}})
-          .pipe(new LimitSizeStream({limit: 10000}))
+          .pipe(new LimitSizeStream({limit: 1024*1024,  writableHighWaterMark: 512*1024}))
           .on('error', errorHandler)
           .pipe(new fs.WriteStream(filepath))
           .on('error', errorHandler)
