@@ -27,14 +27,9 @@ server.on('request', (req, res) => {
       res.statusCode = 200;
       const readStream = fs.createReadStream(filepath);
 
-      readStream.on('error', () => {
-        res.statusCode = 500;
-        res.end();
-      });
-
-      res.on('close', () => {readStream.destroy();})
-
-      readStream.pipe(res);
+      readStream
+          .pipe(res)
+          .on('close', () => {readStream.destroy();});
 
 
       break;
