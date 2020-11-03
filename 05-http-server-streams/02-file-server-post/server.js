@@ -17,17 +17,17 @@ server.on('request', (req, res) => {
     switch (error.code) {
       case "LIMIT_EXCEEDED":
         res.statusCode = 413;
-        res.end();
+        res.end('413');
         break;
 
       case 'ERR_STREAM_PREMATURE_CLOSE':
         res.statusCode = 500;
-        res.end();
+        res.end('500');
         break;
 
       default:
         res.statusCode = 500;
-        res.end();
+        res.end('500');
 
     }
   }
@@ -36,25 +36,25 @@ server.on('request', (req, res) => {
     case 'POST':
       if (pathname.split('/').length > 1) {
         res.statusCode = 400;
-        res.end();
+        res.end('400');
         break;
       }
 
       if (fs.existsSync(filepath)) {
         res.statusCode = 409;
-        res.end();
+        res.end('409');
         break;
       }
 
       req.on('error', errorHandler)
-          .on('close', ()=> {if (req.aborted) { fs.unlinkSync(filepath)}})
-          .pipe(new LimitSizeStream({limit: 1024*1024,  writableHighWaterMark: 512*1024}))
+          .on('aborted', () => {fs.unlinkSync(filepath)})
+          .pipe(new LimitSizeStream({limit: 1024*1024}))
           .on('error', errorHandler)
           .pipe(new fs.WriteStream(filepath))
           .on('error', errorHandler)
           .on('close', () => {
             res.statusCode = 201;
-            res.end();
+            res.end('201');
           });
       break;
 
