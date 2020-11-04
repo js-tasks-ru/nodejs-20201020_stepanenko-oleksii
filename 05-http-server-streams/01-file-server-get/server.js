@@ -10,27 +10,34 @@ server.on('request', (req, res) => {
 
   const filepath = path.join(__dirname, 'files', pathname);
 
+  let errorHandler = function (error) {
+    switch (error.code) {
+      case "ENOENT":
+        res.statusCode = 404;
+        res.end(`No such file on disk: ${pathname}`);
+        break;
+
+      default:
+        res.statusCode = 500;
+        res.end('500');
+    }
+  }
+
   switch (req.method) {
     case 'GET':
       if (pathname.split('/').length > 1) {
         res.statusCode = 400;
         res.end();
-        break;
+        return;
       }
 
-      if (!fs.existsSync(filepath)) {
-        res.statusCode = 404;
-        res.end();
-        break;
-      }
-
-      res.statusCode = 200;
       const readStream = fs.createReadStream(filepath);
 
       readStream
+          .on ('error', errorHandler)
           .pipe(res)
-          .on('close', () => {readStream.destroy();});
-
+          .on('close', () => {readStream.destroy();})
+          .on ('error', errorHandler);
 
       break;
 
