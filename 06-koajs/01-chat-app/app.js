@@ -5,22 +5,33 @@ const app = new Koa();
 app.use(require('koa-static')(path.join(__dirname, 'public')));
 app.use(require('koa-bodyparser')());
 
+app.use (async (ctx, next) => {
+    try {
+        await next();
+    }
+    catch (err) {
+        ctx.status = 500;
+        ctx.body=err.message;
+    }
+
+})
+
 const Router = require('koa-router');
 const router = new Router();
 let subscribers = [];
 
 router.get('/subscribe', async (ctx, next) => {
-    await new Promise((resolve, reject) => {
-        subscribers.push(resolve);
-    }).then ((res) => {ctx.body=res;} );
+    ctx.body=await new Promise((sendNewMessage) => {
+        subscribers.push(sendNewMessage);
+    });
 });
 
 router.post('/publish', async (ctx, next) => {
     if (!ctx.request.body.message) {
-        return next();
+        ctx.throw(400, 'message is required');
     }
     subscribers.forEach(
-        resolve => resolve(ctx.request.body.message)
+        sendNewMessage => sendNewMessage(ctx.request.body.message)
     )
     subscribers = [];
     ctx.status = 201;
