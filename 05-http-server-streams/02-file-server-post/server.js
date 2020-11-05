@@ -12,20 +12,26 @@ server.on('request', (req, res) => {
   const filepath = path.join(__dirname, 'files', pathname);
 
   let errorHandler = function (error) {
-    fs.unlinkSync(filepath);
-
     switch (error.code) {
+      case "EEXIST":
+        res.statusCode = 409;
+        res.end('409');
+        break;
+
       case "LIMIT_EXCEEDED":
+        fs.unlinkSync(filepath);
         res.statusCode = 413;
         res.end('413');
         break;
 
       case 'ERR_STREAM_PREMATURE_CLOSE':
+        fs.unlinkSync(filepath);
         res.statusCode = 500;
         res.end('500');
         break;
 
       default:
+        fs.unlinkSync(filepath);
         res.statusCode = 500;
         res.end('500');
 
@@ -40,17 +46,12 @@ server.on('request', (req, res) => {
         break;
       }
 
-      if (fs.existsSync(filepath)) {
-        res.statusCode = 409;
-        res.end('409');
-        break;
-      }
 
       req.on('error', errorHandler)
           .on('aborted', () => {fs.unlinkSync(filepath)})
           .pipe(new LimitSizeStream({limit: 1024*1024}))
           .on('error', errorHandler)
-          .pipe(new fs.WriteStream(filepath))
+          .pipe(new fs.WriteStream(filepath, {flags: 'wx'}))
           .on('error', errorHandler)
           .on('close', () => {
             res.statusCode = 201;
