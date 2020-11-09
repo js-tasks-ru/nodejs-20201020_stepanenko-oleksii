@@ -33,8 +33,8 @@ const productSchema = new mongoose.Schema({
 });
 
 productSchema.index({
-  title: 1,
-  description: 1
+  title: "text",
+  description: "text"
 },
 {
   name: 'TextSearchIndex',

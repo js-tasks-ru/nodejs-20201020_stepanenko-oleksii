@@ -4,10 +4,7 @@ module.exports.productsByQuery = async function productsByQuery(ctx, next) {
   let query = ctx.request.query.query;
   if (!query) return ctx.body = {products: []}
 
-  let products = await Product.find({$or: [
-        {'title':       { "$regex": query, "$options": "i" }},
-        {'description': { "$regex": query, "$options": "i" }}
-      ]});
+  let products = await Product.find({ $text: { $search: query } });
 
   ctx.body = {products: products};
 };
